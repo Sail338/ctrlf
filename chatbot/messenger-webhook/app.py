@@ -17,7 +17,7 @@ VERIFY_TOKEN = 'STARTED_FROM_NEW_BRUNSWICK_NOW_WE_HERE'
 bot = Bot(MESSENGER_TOKEN)
 #wit_bot = Wit(WIT_TOKEN)
 
-user = {'playlist': None, 'topic':None, 'subtopics':[]}
+user = {'playlist': None, 'topic':None, 'subtopic': None}
 
 #We will receive messages that Facebook sends our bot at this endpoint 
 @app.route("/", methods=['GET', 'POST'])
@@ -108,11 +108,32 @@ def end_sequence(message):
     else:
         return False
 
+def integrate_cool_stuff(topic, subtopic):
+    print('TOPIC, SUBTOPIC', topic, subtopic)
+    url = 'http://ec2-34-201-73-49.compute-1.amazonaws.com:6969/searchSubtopic'
+    data = {'topic':topic, 'subtopic':subtopic}
+    r = requests.post(url, json=data)
+    response = r.json()
+    return response
 
+
+#Create time embedded youtube links
+def get_timestamped_links(response):
+    base_url = response['videoLink']
+    time_tags = response['timeTags']
+    ret_string = ""
+    i = 1
+    for tag in time_tags:
+        times = tag.split('.')
+        total_time = times[0] * 60 + times[1]
+        timetagged = base_url + '&t='+str(total_time)
+        ret_string += str(i) + ') ' + timetagged + '\n'
+        i += 1
+
+    return ret_string
 
 def handle_message(response, fb_id):
 
-    print('RESPONSE', response)
     if user['playlist'] == None:
         if True:
             user['playlist'] = response
@@ -122,21 +143,26 @@ def handle_message(response, fb_id):
 
     elif user['topic'] == None:
         user['topic'] = response
-        return "Great! What subtopics do you want me to look for?"
+        return "Great! What subtopic do you want me to look for?"
 
     else:
         if end_sequence(response):
-            #############################
-            #   INTEGRATE COOL  STUFF   #
-            #############################
-            return "Fantastic. Give me a minute to look through this and I'll get right back to you."
-        else:
-            subtopics = response.split(',')
-            for topic in subtopics:
-                user['subtopics'].append(topic)
+            user['playlist'] = None
+            user['topic'] = None
+            user['subtopic'] = None
+            return "It\'s been a pleasure working with you!"
+            
 
-            return "Cool, I'll add that to my list of things to look for. Anything else?"
-    
+        else:
+            subtopic = response.split(',')
+            if len(subtopic) > 1:
+                return "Whoa there! I am but a simple bot. What subtopic would you like to search first?" 
+
+            else:
+                response = integrate_cool_stuff(user['topic'], subtopic[0])
+                ret_string = get_timestamped_links(response)
+                return ret_string
+
     return "Sorry - something seems to have gone dreadfully wrong. Run while you still can."
     
     '''
