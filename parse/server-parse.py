@@ -21,23 +21,28 @@ def setLink():
     #    abort(400)
     #playListLink = separate[1]
 
-@app.route('/searchSubtopic', methods=['GET'])
+@app.route('/searchSubtopic', methods=['POST'])
 def searchSub():
 
     if not request.json["topic"] or not request.json["subtopic"]:
         return jsonify({"status":400})
     topic = request.json["topic"].upper().replace(" ","_")
     suggestions = mongo.find(topic, request.json["subtopic"])
-    timeStamps = suggestions[0][1][1][0]["timeStamp"]
-    for i in range(0,len(timeStamps)):
-        preParsedTs = "%0.2f" % (timeStamps[i] / 60)
-        timeStamps[i] = float(preParsedTs)
-
+    print(suggestions)
+    videoLinks = []
+    timeStamps = []
+    for videoSuggestion in suggestions:
+        if videoSuggestion[1][1] == []:
+            continue
+        timeStamps.append(videoSuggestion[1][1][0]["timeStamp"])
+        videoLinks.append(videoSuggestion[1][0])
+    
 
     ret = {
-        "videoLink":suggestions[0][0],
+        "videoLink":videoLinks,
         "timeStamps":timeStamps
     }
+    print(ret)
     return jsonify(ret)
 
 

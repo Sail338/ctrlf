@@ -160,7 +160,7 @@ def getVideosGivenPlayList(playListID:str,topic:str,subtopic:str):
             continue
         youtubeUrl = "https://www.youtube.com/watch?v=" + videoID
         #parse the audio file
-#        parseVideos([youtubeUrl],videoID)
+        parseVideos([youtubeUrl],videoID)
         #convert mp3 to flac
 
         #uri = uploadToGcp("out.flac")

@@ -81,6 +81,9 @@ def diffTime(timeStamp1,timeStamp2):
     return abs(timeStamp1-timeStamp2)
 
 def computeChains(suggestions:list):
+    print(suggestions)
+    if suggestions == [] or len(suggestions) == 0:
+        return
     chains = [[suggestions[0]["timeStamp"][i]] for i in range(0,len(suggestions[0]["timeStamp"]))]
     finished = {}
     chainMax = 1
@@ -99,15 +102,16 @@ def computeChains(suggestions:list):
         if(len(chain) == chainMax):
             newChains.append(chain)
 
-
+    if newChains == [] or len(newChains) == 0:
+        suggestions.clear()
+        return
     word = 0
-    print(newChains)
     for suggestion in suggestions:
         suggestion["timeStamp"] = []
         for i in range(0,len(newChains)):
             suggestion["timeStamp"].append(newChains[i][word])
         word += 1
-    print(suggestions)
+
 
 
 def findBestSuggestion(suggestions):
@@ -147,11 +151,11 @@ def findSubTopic(topic:str,subtopic:str,videoID:str):
         curDoc = None
         while i < len(subtopic):
             curDoc = client["topics"][topic].find_one({"videoID":videoID,"parent":parent,"letter":subtopic[i]})
-            if curDoc == None:
+            if curDoc == None or curDoc == [] or curDoc == {}:
                 break
             parent = curDoc["treeID"]
             i+=1
-        if curDoc != None:
+        if curDoc != None and curDoc != [] and curDoc != {}:
             suggestions.append(curDoc)
         else:
             break
